@@ -1,0 +1,11 @@
+# GitHub Repository Setup Commands
+# After creating your repository on GitHub, run these commands:
+
+# Add your GitHub repository as remote (replace YOUR_USERNAME with your GitHub username)
+git remote add origin https://github.com/YOUR_USERNAME/chat-app-react-native.git
+
+# Push your code to GitHub
+git push -u origin master
+
+# Your repository will be available at:
+# https://github.com/YOUR_USERNAME/chat-app-react-native
