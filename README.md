@@ -1,50 +1,90 @@
-# Welcome to your Expo app 👋
+# Chat App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+A React Native chat application built with Expo for Achievement 5 of the Full-Stack Immersion course.
 
-## Get started
+## Features
 
-1. Install dependencies
+- **Start Screen**: Enter your name and choose a background color for the chat
+- **Chat Screen**: Main chat interface with personalized background color
+- **Navigation**: Seamless navigation between screens using React Navigation
+- **Responsive Design**: Optimized for mobile devices
 
+## Screenshots
+
+The app consists of two main screens:
+
+1. **Start Screen**: Users enter their name and select a background color
+2. **Chat Screen**: Main chat interface (chat functionality will be implemented in the next exercise)
+
+## Technologies Used
+
+- React Native
+- Expo
+- React Navigation
+- JavaScript ES6+
+
+## Installation
+
+1. Clone this repository:
+   ```bash
+   git clone <repository-url>
+   cd hello-world
+   ```
+
+2. Install dependencies:
    ```bash
    npm install
    ```
 
-2. Start the app
-
+3. Start the development server:
    ```bash
-   npx expo start
+   npm start
    ```
 
-In the output, you'll find options to open the app in a
+4. Run on your device:
+   - Install Expo Go app on your mobile device
+   - Scan the QR code displayed in the terminal
+   - Alternatively, press 'a' for Android emulator or 'w' for web
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Project Structure
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
+```
+hello-world/
+├── components/
+│   ├── Start.js          # Start screen component
+│   └── Chat.js           # Chat screen component
+├── App.js                # Main app component with navigation
+├── index.js              # App entry point
+└── assets/               # Images and other assets
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## How to Use
 
-## Learn more
+1. **Start Screen**: 
+   - Enter your name in the text input field
+   - Choose your preferred background color by tapping one of the color options
+   - Tap "Start Chatting" to proceed to the chat screen
 
-To learn more about developing your project with Expo, look at the following resources:
+2. **Chat Screen**: 
+   - Your name appears in the navigation header
+   - The background color you selected is applied
+   - Chat functionality will be added in the next exercise
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+## Next Steps
 
-## Join the community
+This is the foundation for a chat app. In the next exercise, we will implement:
+- Real-time messaging
+- Image sharing
+- Location sharing
+- Offline message storage
 
-Join our community of developers creating universal apps.
+## Development Notes
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Uses traditional React Navigation setup instead of Expo Router for learning purposes
+- Follows the tutorial instructions from Achievement 5
+- Implements proper state management and prop passing between screens
+- Uses TouchableOpacity for better button customization
+
+## Author
+
+Created as part of the CareerFoundry Full-Stack Web Development Course.
