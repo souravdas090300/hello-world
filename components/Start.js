@@ -1,27 +1,33 @@
 import { useState } from 'react';
-import { 
-  StyleSheet, 
-  View, 
-  Text, 
-  TextInput, 
-  TouchableOpacity, 
-  Alert 
+import {
+    Alert,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
 } from 'react-native';
 
+// The app's start screen component that allows users to enter their name and choose a background color
 const Start = ({ navigation }) => {
+  // State for storing user's name input
   const [name, setName] = useState('');
+  // State for storing selected background color (default to first option)
   const [backgroundColor, setBackgroundColor] = useState('#090C08');
 
-  // Background color options
+  // Background color options for the chat screen
   const colors = ['#090C08', '#474056', '#8A95A5', '#B9C6AE'];
 
+  // Function to handle navigation to chat screen with validation
   const handleStartChat = () => {
     if (name.trim()) {
+      // Navigate to Chat screen and pass user's name and selected background color
       navigation.navigate('Chat', { 
         name: name.trim(), 
         backgroundColor: backgroundColor 
       });
     } else {
+      // Show alert if user hasn't entered a name
       Alert.alert('Please enter your name');
     }
   };
@@ -29,9 +35,12 @@ const Start = ({ navigation }) => {
   return (
     <View style={[styles.backgroundImage, { backgroundColor: '#757083' }]}>
       <View style={styles.container}>
+        {/* Main app title */}
         <Text style={styles.title}>Chat App</Text>
         
+        {/* Main input container with white background */}
         <View style={styles.inputContainer}>
+          {/* Text input field for user's name */}
           <TextInput
             style={styles.textInput}
             value={name}
@@ -40,8 +49,10 @@ const Start = ({ navigation }) => {
             placeholderTextColor="#757083"
           />
           
+          {/* Color selection instruction */}
           <Text style={styles.colorText}>Choose Background Color:</Text>
           
+          {/* Container for color selection circles */}
           <View style={styles.colorContainer}>
             {colors.map((color, index) => (
               <TouchableOpacity
@@ -56,6 +67,7 @@ const Start = ({ navigation }) => {
             ))}
           </View>
           
+          {/* Start chatting button */}
           <TouchableOpacity
             style={styles.button}
             onPress={handleStartChat}
