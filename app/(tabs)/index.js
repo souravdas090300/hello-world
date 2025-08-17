@@ -1,75 +1,187 @@
 import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import { router } from 'expo-router';
+import { useState } from 'react';
+import {
+  Alert,
+  ImageBackground,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+export default function StartScreen() {
+  // State for storing user's name input
+  const [name, setName] = useState('');
+  // State for storing selected background color (default to first option)
+  const [backgroundColor, setBackgroundColor] = useState('#090C08');
 
-export default function HomeScreen() {
+  // Background color options for the chat screen
+  const colors = ['#090C08', '#474056', '#8A95A5', '#B9C6AE'];
+
+  // Function to handle navigation to chat screen with validation
+  const handleStartChat = () => {
+    if (name.trim()) {
+      // Navigate to Chat screen and pass user's name and selected background color
+      router.push({
+        pathname: '/explore',
+        params: { 
+          name: name.trim(), 
+          backgroundColor: backgroundColor 
+        }
+      });
+    } else {
+      // Show alert if user hasn't entered a name
+      Alert.alert('Please enter your name');
+    }
+  };
+
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">Hello World!</ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <ImageBackground 
+      source={require('../../Background Image.png')} 
+      style={styles.backgroundImage}
+      resizeMode="cover"
+    >
+      <View style={styles.container}>
+        {/* Main app title */}
+        <Text style={styles.title}>Chat App</Text>
+        
+        {/* Main input container with white background */}
+        <View style={styles.inputContainer}>
+          {/* Name input section with avatar icon */}
+          <View style={styles.nameInputContainer}>
+            <Image
+              source={require('../../icon.png')}
+              style={styles.avatarIcon}
+            />
+            <TextInput
+              style={styles.textInput}
+              value={name}
+              onChangeText={setName}
+              placeholder="Your Name"
+              placeholderTextColor="rgba(117, 112, 131, 0.5)"
+            />
+          </View>
+          
+          {/* Color selection instruction */}
+          <Text style={styles.colorText}>Choose Background Color:</Text>
+          
+          {/* Container for color selection circles */}
+          <View style={styles.colorContainer}>
+            {colors.map((color, index) => (
+              <TouchableOpacity
+                key={index}
+                style={[
+                  styles.colorOption,
+                  { backgroundColor: color },
+                  backgroundColor === color && styles.selectedColor
+                ]}
+                onPress={() => setBackgroundColor(color)}
+              />
+            ))}
+          </View>
+          
+          {/* Start chatting button */}
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleStartChat}
+          >
+            <Text style={styles.buttonText}>Start Chatting</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </ImageBackground>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
+  backgroundImage: {
+    flex: 1,
+    justifyContent: 'flex-end', // Position content at bottom
+  },
+  container: {
+    flex: 1,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 50,
+  },
+  title: {
+    fontSize: 45,
+    fontWeight: '600',
+    color: '#FFFFFF',
+    textAlign: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 80,
+  },
+  inputContainer: {
+    backgroundColor: '#FFFFFF',
+    padding: 30, // Increased padding for better spacing
+    marginHorizontal: 20, // Equal left and right margins
+    marginBottom: 20, // Bottom margin from screen edge
+    borderRadius: 10,
+    width: '88%',
+    alignItems: 'center',
+    minHeight: 300, // Ensure adequate height for content
+  },
+  nameInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    width: '100%',
+    borderWidth: 1,
+    borderColor: '#757083',
+    borderRadius: 5,
+    paddingHorizontal: 15,
+    marginBottom: 30, // Added spacing below name input
   },
-  stepContainer: {
-    gap: 8,
-    marginBottom: 8,
+  avatarIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 15,
+    opacity: 0.5,
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  textInput: {
+    flex: 1,
+    padding: 15,
+    fontSize: 16,
+    fontWeight: '300',
+    color: '#757083',
+  },
+  colorText: {
+    fontSize: 16,
+    fontWeight: '300',
+    color: '#757083',
+    marginBottom: 15, // Spacing below text
+    alignSelf: 'flex-start', // Align to left
+  },
+  colorContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '80%',
+    marginBottom: 30, // Added spacing below color buttons
+  },
+  colorOption: {
+    width: 50,
+    height: 50,
+    borderRadius: 25,
+    margin: 5,
+  },
+  selectedColor: {
+    borderWidth: 3,
+    borderColor: '#757083',
+  },
+  button: {
+    backgroundColor: '#757083',
+    padding: 15,
+    borderRadius: 5,
+    width: '100%',
+    alignItems: 'center',
+  },
+  buttonText: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#FFFFFF',
   },
 });

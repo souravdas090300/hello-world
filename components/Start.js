@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   Alert,
+  Image,
   ImageBackground,
   StyleSheet,
   Text,
@@ -45,14 +46,20 @@ const Start = ({ navigation }) => {
         
         {/* Main input container with white background */}
         <View style={styles.inputContainer}>
-          {/* Text input field for user's name */}
-          <TextInput
-            style={styles.textInput}
-            value={name}
-            onChangeText={setName}
-            placeholder="Your Name"
-            placeholderTextColor="rgba(117, 112, 131, 0.5)"
-          />
+          {/* Name input section with avatar icon */}
+          <View style={styles.nameInputContainer}>
+            <Image
+              source={require('../assets/images/icon.png')}
+              style={styles.avatarIcon}
+            />
+            <TextInput
+              style={styles.textInput}
+              value={name}
+              onChangeText={setName}
+              placeholder="Your Name"
+              placeholderTextColor="rgba(117, 112, 131, 0.5)"
+            />
+          </View>
           
           {/* Color selection instruction */}
           <Text style={styles.colorText}>Choose Background Color:</Text>
@@ -116,16 +123,28 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     minHeight: 300, // Ensure adequate height for content
   },
-  textInput: {
+  nameInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     width: '100%',
-    padding: 15,
     borderWidth: 1,
     borderColor: '#757083',
     borderRadius: 5,
+    paddingHorizontal: 15,
+    marginBottom: 30, // Added spacing below name input
+  },
+  avatarIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 15,
+    opacity: 0.5,
+  },
+  textInput: {
+    flex: 1,
+    padding: 15,
     fontSize: 16,
     fontWeight: '300',
     color: '#757083',
-    marginBottom: 30, // Added spacing below name input
   },
   colorText: {
     fontSize: 16,
