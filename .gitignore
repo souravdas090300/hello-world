@@ -35,5 +35,8 @@ yarn-error.*
 
 # typescript
 *.tsbuildinfo
+tsconfig.json
+*.d.ts
+types/
 
 app-example

@@ -1,11 +1,12 @@
 import { useState } from 'react';
 import {
-    Alert,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View
+  Alert,
+  ImageBackground,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
 } from 'react-native';
 
 // The app's start screen component that allows users to enter their name and choose a background color
@@ -33,10 +34,14 @@ const Start = ({ navigation }) => {
   };
 
   return (
-    <View style={[styles.backgroundImage, { backgroundColor: '#757083' }]}>
+    <ImageBackground 
+      source={require('../Background Image.png')} 
+      style={styles.backgroundImage}
+      resizeMode="cover"
+    >
       <View style={styles.container}>
         {/* Main app title */}
-        <Text style={styles.title}>Chat App</Text>
+        <Text style={styles.title}>App Title</Text>
         
         {/* Main input container with white background */}
         <View style={styles.inputContainer}>
@@ -46,7 +51,7 @@ const Start = ({ navigation }) => {
             value={name}
             onChangeText={setName}
             placeholder="Your Name"
-            placeholderTextColor="#757083"
+            placeholderTextColor="rgba(117, 112, 131, 0.5)"
           />
           
           {/* Color selection instruction */}
@@ -76,34 +81,40 @@ const Start = ({ navigation }) => {
           </TouchableOpacity>
         </View>
       </View>
-    </View>
+    </ImageBackground>
   );
 };
 
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: 'flex-end', // Position content at bottom
   },
   container: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    paddingVertical: 50,
   },
   title: {
     fontSize: 45,
     fontWeight: '600',
     color: '#FFFFFF',
-    marginBottom: 50,
+    textAlign: 'center',
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingTop: 80,
   },
   inputContainer: {
     backgroundColor: '#FFFFFF',
-    padding: 20,
+    padding: 30, // Increased padding for better spacing
+    marginHorizontal: 20, // Equal left and right margins
+    marginBottom: 20, // Bottom margin from screen edge
     borderRadius: 10,
     width: '88%',
     alignItems: 'center',
+    minHeight: 300, // Ensure adequate height for content
   },
   textInput: {
     width: '100%',
@@ -114,19 +125,20 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '300',
     color: '#757083',
-    marginBottom: 20,
+    marginBottom: 30, // Added spacing below name input
   },
   colorText: {
     fontSize: 16,
     fontWeight: '300',
     color: '#757083',
-    marginBottom: 10,
+    marginBottom: 15, // Spacing below text
+    alignSelf: 'flex-start', // Align to left
   },
   colorContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '80%',
-    marginBottom: 20,
+    marginBottom: 30, // Added spacing below color buttons
   },
   colorOption: {
     width: 50,
