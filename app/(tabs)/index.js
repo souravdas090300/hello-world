@@ -39,20 +39,20 @@ export default function StartScreen() {
 
   return (
     <ImageBackground 
-      source={require('../../Background Image.png')} 
+      source={require('../../assets/images/Background Image.png')} 
       style={styles.backgroundImage}
       resizeMode="cover"
     >
       <View style={styles.container}>
         {/* Main app title */}
-        <Text style={styles.title}>Chat App</Text>
+        <Text style={styles.title}>App Title</Text>
         
         {/* Main input container with white background */}
         <View style={styles.inputContainer}>
           {/* Name input section with avatar icon */}
           <View style={styles.nameInputContainer}>
             <Image
-              source={require('../../icon.png')}
+              source={require('../../assets/images/avatar-icon.png')}
               style={styles.avatarIcon}
             />
             <TextInput

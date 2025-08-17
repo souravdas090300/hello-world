@@ -36,7 +36,7 @@ const Start = ({ navigation }) => {
 
   return (
     <ImageBackground 
-      source={require('../Background Image.png')} 
+      source={require('../assets/images/Background Image.png')} 
       style={styles.backgroundImage}
       resizeMode="cover"
     >
@@ -49,7 +49,7 @@ const Start = ({ navigation }) => {
           {/* Name input section with avatar icon */}
           <View style={styles.nameInputContainer}>
             <Image
-              source={require('../assets/images/icon.png')}
+              source={require('../assets/images/avatar-icon.png')}
               style={styles.avatarIcon}
             />
             <TextInput
