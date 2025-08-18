@@ -4,6 +4,7 @@ import {
   Image,
   ImageBackground,
   KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -41,10 +42,10 @@ const Start = ({ navigation }) => {
       style={styles.backgroundImage}
       resizeMode="cover"
     >
-      {/* KeyboardAvoidingView to handle keyboard overlap on Android */}
+      {/* KeyboardAvoidingView to handle keyboard overlap on different platforms */}
       <KeyboardAvoidingView 
         style={styles.container}
-        behavior="height"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
         keyboardVerticalOffset={50}
       >
         {/* Main app title */}
@@ -104,6 +105,9 @@ const Start = ({ navigation }) => {
             <Text style={styles.buttonText}>Start Chatting</Text>
           </TouchableOpacity>
         </View>
+        
+        {/* Platform-specific KeyboardAvoidingView for iOS */}
+        {Platform.OS === 'ios' ? <KeyboardAvoidingView behavior="padding" /> : null}
       </KeyboardAvoidingView>
     </ImageBackground>
   );

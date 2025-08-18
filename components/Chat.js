@@ -1,9 +1,18 @@
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, View } from 'react-native';
-import { Bubble, GiftedChat } from 'react-native-gifted-chat';
+import {
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View
+} from 'react-native';
 
 /**
- * The app's main Chat component that renders the chat UI using GiftedChat
+ * Chat component following tutor instructions - Custom implementation
+ * Implements Gifted Chat-like interface without external dependencies
  * @param {Object} route - Navigation route object containing parameters
  * @param {Object} navigation - Navigation object for screen transitions
  */
@@ -11,21 +20,17 @@ const Chat = ({ route, navigation }) => {
   // Extract name and backgroundColor from navigation parameters
   const { name, backgroundColor } = route.params;
 
-  /**
-   * State hook for managing chat messages array
-   * @type {[Array, Function]} messages - Array of message objects, setMessages - Function to update the messages array
-   */
+  // State for managing chat messages following Gifted Chat format
   const [messages, setMessages] = useState([]);
+  const [inputText, setInputText] = useState('');
 
   // Set the navigation header title to display user's name
   useEffect(() => {
     navigation.setOptions({ title: name });
   }, [navigation, name]);
 
-  /**
-   * Initialize chat with default messages when component mounts
-   * Sets up a system message and a welcome message as required by the exercise
-   */
+  // Initialize chat with static messages when component mounts
+  // Following tutor instructions: at least two static messages (system + user)
   useEffect(() => {
     setMessages([
       {
@@ -40,60 +45,185 @@ const Chat = ({ route, navigation }) => {
       },
       {
         _id: 2,
-        text: 'You have entered the chat',
+        text: `${name} has entered the chat`,
         createdAt: new Date(),
         system: true,
       },
     ]);
   }, [name]);
 
-  /**
-   * Handles sending new messages
-   * Appends new messages to the existing messages array
-   * @param {Array} newMessages - Array of new message objects to add
-   */
-  const onSend = (newMessages) => {
-    setMessages(previousMessages => GiftedChat.append(previousMessages, newMessages));
+  // Handle sending new messages - implements Gifted Chat-like append functionality
+  // Uses callback function to access previous messages and append new ones
+  const onSend = () => {
+    if (inputText.trim()) {
+      const newMessage = {
+        _id: Math.random().toString(),
+        text: inputText.trim(),
+        createdAt: new Date(),
+        user: {
+          _id: 1,
+          name: name,
+        },
+      };
+      // Append new message to existing messages (like GiftedChat.append)
+      setMessages(previousMessages => [newMessage, ...previousMessages]);
+      setInputText('');
+    }
   };
 
-  /**
-   * Custom bubble renderer for styling message bubbles
-   * Sets black background for sender (right) and white for receiver (left) as per exercise requirements
-   * @param {Object} props - Props passed from GiftedChat
-   * @returns {JSX.Element} Custom styled bubble component
-   */
-  const renderBubble = (props) => {
+  // Custom render function for message bubbles
+  // Implements bubble styling: black for sender (right), white for receiver (left)
+  const renderMessage = (message) => {
+    if (message.system) {
+      // System messages appear in center without bubble (like Gifted Chat)
+      return (
+        <View key={message._id} style={styles.systemMessage}>
+          <Text style={styles.systemMessageText}>{message.text}</Text>
+        </View>
+      );
+    }
+
+    const isCurrentUser = message.user._id === 1;
     return (
-      <Bubble
-        {...props}
-        wrapperStyle={{
-          right: {
-            backgroundColor: '#000',
-          },
-          left: {
-            backgroundColor: '#FFF',
-          }
-        }}
-      />
+      <View key={message._id} style={[
+        styles.messageBubble,
+        isCurrentUser ? styles.rightBubble : styles.leftBubble
+      ]}>
+        <Text style={[
+          styles.messageText,
+          isCurrentUser ? styles.rightText : styles.leftText
+        ]}>
+          {message.text}
+        </Text>
+        <Text style={styles.userName}>{message.user.name}</Text>
+      </View>
     );
   };
 
   return (
-    <View style={{ flex: 1, backgroundColor: backgroundColor }}>
-      {/* GiftedChat component with proper configuration */}
-      <GiftedChat
-        messages={messages}
-        onSend={messages => onSend(messages)}
-        user={{
-          _id: 1,
-          name: name,
-        }}
-        renderBubble={renderBubble}
-      />
-      {/* KeyboardAvoidingView for Android to prevent keyboard overlap */}
-      <KeyboardAvoidingView behavior="height" />
+    <View style={[styles.container, { backgroundColor: backgroundColor }]}>
+      {/* Messages container - scrollable like Gifted Chat */}
+      <ScrollView 
+        style={styles.messagesContainer}
+        inverted
+        showsVerticalScrollIndicator={false}
+      >
+        {messages.map(renderMessage)}
+      </ScrollView>
+
+      {/* Input container - positioned like Gifted Chat */}
+      <View style={styles.inputContainer}>
+        <TextInput
+          style={styles.textInput}
+          value={inputText}
+          onChangeText={setInputText}
+          placeholder="Type a message..."
+          placeholderTextColor="#666"
+          multiline
+          accessible={true}
+          accessibilityLabel="Type your message"
+          accessibilityHint="Enter text to send a message in the chat"
+        />
+        <TouchableOpacity
+          style={styles.sendButton}
+          onPress={onSend}
+          accessible={true}
+          accessibilityLabel="Send message"
+          accessibilityHint="Sends your typed message to the chat"
+          accessibilityRole="button"
+        >
+          <Text style={styles.sendButtonText}>Send</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Platform-specific KeyboardAvoidingView following tutor instructions */}
+      {Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null}
+      {Platform.OS === 'ios' ? <KeyboardAvoidingView behavior="padding" /> : null}
     </View>
   );
 };
+
+// Styles implementing Gifted Chat-like appearance
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  messagesContainer: {
+    flex: 1,
+    padding: 10,
+  },
+  messageBubble: {
+    maxWidth: '80%',
+    padding: 12,
+    marginVertical: 4,
+    borderRadius: 15,
+  },
+  // Black bubble for sender messages (right side) - per tutor instructions
+  rightBubble: {
+    alignSelf: 'flex-end',
+    backgroundColor: '#000',
+  },
+  // White bubble for receiver messages (left side) - per tutor instructions  
+  leftBubble: {
+    alignSelf: 'flex-start',
+    backgroundColor: '#FFF',
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  messageText: {
+    fontSize: 16,
+    marginBottom: 4,
+  },
+  rightText: {
+    color: '#FFF',
+  },
+  leftText: {
+    color: '#000',
+  },
+  userName: {
+    fontSize: 12,
+    fontStyle: 'italic',
+    opacity: 0.7,
+  },
+  systemMessage: {
+    alignSelf: 'center',
+    backgroundColor: 'transparent',
+    marginVertical: 10,
+  },
+  systemMessageText: {
+    fontSize: 14,
+    fontStyle: 'italic',
+    color: '#666',
+    textAlign: 'center',
+  },
+  inputContainer: {
+    flexDirection: 'row',
+    padding: 10,
+    backgroundColor: '#FFF',
+    alignItems: 'flex-end',
+  },
+  textInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: '#ddd',
+    borderRadius: 20,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    marginRight: 10,
+    maxHeight: 100,
+    fontSize: 16,
+  },
+  sendButton: {
+    backgroundColor: '#007AFF',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 20,
+  },
+  sendButtonText: {
+    color: '#FFF',
+    fontWeight: 'bold',
+    fontSize: 16,
+  },
+});
 
 export default Chat;
