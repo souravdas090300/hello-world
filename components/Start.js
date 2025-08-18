@@ -3,6 +3,7 @@ import {
   Alert,
   Image,
   ImageBackground,
+  KeyboardAvoidingView,
   StyleSheet,
   Text,
   TextInput,
@@ -40,7 +41,12 @@ const Start = ({ navigation }) => {
       style={styles.backgroundImage}
       resizeMode="cover"
     >
-      <View style={styles.container}>
+      {/* KeyboardAvoidingView to handle keyboard overlap on Android */}
+      <KeyboardAvoidingView 
+        style={styles.container}
+        behavior="height"
+        keyboardVerticalOffset={50}
+      >
         {/* Main app title */}
         <Text style={styles.title}>App Title</Text>
         
@@ -58,6 +64,9 @@ const Start = ({ navigation }) => {
               onChangeText={setName}
               placeholder="Your Name"
               placeholderTextColor="rgba(117, 112, 131, 0.5)"
+              accessible={true}
+              accessibilityLabel="Enter your name"
+              accessibilityHint="Type your name to join the chat"
             />
           </View>
           
@@ -75,6 +84,10 @@ const Start = ({ navigation }) => {
                   backgroundColor === color && styles.selectedColor
                 ]}
                 onPress={() => setBackgroundColor(color)}
+                accessible={true}
+                accessibilityLabel={`Background color ${index + 1}`}
+                accessibilityHint={`Sets the chat background to ${color === '#090C08' ? 'dark black' : color === '#474056' ? 'dark purple' : color === '#8A95A5' ? 'blue gray' : 'light green'}`}
+                accessibilityRole="button"
               />
             ))}
           </View>
@@ -83,11 +96,15 @@ const Start = ({ navigation }) => {
           <TouchableOpacity
             style={styles.button}
             onPress={handleStartChat}
+            accessible={true}
+            accessibilityLabel="Start Chatting"
+            accessibilityHint="Navigates to the chat screen with your selected name and background color"
+            accessibilityRole="button"
           >
             <Text style={styles.buttonText}>Start Chatting</Text>
           </TouchableOpacity>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </ImageBackground>
   );
 };
