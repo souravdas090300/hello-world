@@ -5,6 +5,7 @@ import {
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -12,26 +13,18 @@ import {
   View
 } from 'react-native';
 
-// The app's start screen component that allows users to enter their name and choose a background color
 const Start = ({ navigation }) => {
-  // State for storing user's name input
   const [name, setName] = useState('');
-  // State for storing selected background color (default to first option)
   const [backgroundColor, setBackgroundColor] = useState('#090C08');
-
-  // Background color options for the chat screen
   const colors = ['#090C08', '#474056', '#8A95A5', '#B9C6AE'];
 
-  // Function to handle navigation to chat screen with validation
   const handleStartChat = () => {
     if (name.trim()) {
-      // Navigate to Chat screen and pass user's name and selected background color
       navigation.navigate('Chat', { 
         name: name.trim(), 
         backgroundColor: backgroundColor 
       });
     } else {
-      // Show alert if user hasn't entered a name
       Alert.alert('Please enter your name');
     }
   };
@@ -42,72 +35,56 @@ const Start = ({ navigation }) => {
       style={styles.backgroundImage}
       resizeMode="cover"
     >
-      {/* KeyboardAvoidingView to handle keyboard overlap on different platforms */}
       <KeyboardAvoidingView 
         style={styles.container}
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={50}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 60 : 0}
       >
-        {/* Main app title */}
-        <Text style={styles.title}>App Title</Text>
-        
-        {/* Main input container with white background */}
-        <View style={styles.inputContainer}>
-          {/* Name input section with avatar icon */}
-          <View style={styles.nameInputContainer}>
-            <Image
-              source={require('../assets/images/avatar-icon.png')}
-              style={styles.avatarIcon}
-            />
-            <TextInput
-              style={styles.textInput}
-              value={name}
-              onChangeText={setName}
-              placeholder="Your Name"
-              placeholderTextColor="rgba(117, 112, 131, 0.5)"
-              accessible={true}
-              accessibilityLabel="Enter your name"
-              accessibilityHint="Type your name to join the chat"
-            />
-          </View>
+        <ScrollView 
+          contentContainerStyle={styles.scrollContainer}
+          keyboardShouldPersistTaps="handled"
+        >
+          <Text style={styles.title}>Let's Chat!</Text>
           
-          {/* Color selection instruction */}
-          <Text style={styles.colorText}>Choose Background Color:</Text>
-          
-          {/* Container for color selection circles */}
-          <View style={styles.colorContainer}>
-            {colors.map((color, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.colorOption,
-                  { backgroundColor: color },
-                  backgroundColor === color && styles.selectedColor
-                ]}
-                onPress={() => setBackgroundColor(color)}
-                accessible={true}
-                accessibilityLabel={`Background color ${index + 1}`}
-                accessibilityHint={`Sets the chat background to ${color === '#090C08' ? 'dark black' : color === '#474056' ? 'dark purple' : color === '#8A95A5' ? 'blue gray' : 'light green'}`}
-                accessibilityRole="button"
+          <View style={styles.inputContainer}>
+            <View style={styles.nameInputContainer}>
+              <Image
+                source={require('../assets/images/avatar-icon.png')}
+                style={styles.avatarIcon}
               />
-            ))}
+              <TextInput
+                style={styles.textInput}
+                value={name}
+                onChangeText={setName}
+                placeholder="Your Name"
+                placeholderTextColor="rgba(117, 112, 131, 0.5)"
+              />
+            </View>
+            
+            <Text style={styles.colorText}>Choose Background Color:</Text>
+            
+            <View style={styles.colorContainer}>
+              {colors.map((color, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.colorOption,
+                    { backgroundColor: color },
+                    backgroundColor === color && styles.selectedColor
+                  ]}
+                  onPress={() => setBackgroundColor(color)}
+                />
+              ))}
+            </View>
+            
+            <TouchableOpacity
+              style={styles.button}
+              onPress={handleStartChat}
+            >
+              <Text style={styles.buttonText}>Start Chatting</Text>
+            </TouchableOpacity>
           </View>
-          
-          {/* Start chatting button */}
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleStartChat}
-            accessible={true}
-            accessibilityLabel="Start Chatting"
-            accessibilityHint="Navigates to the chat screen with your selected name and background color"
-            accessibilityRole="button"
-          >
-            <Text style={styles.buttonText}>Start Chatting</Text>
-          </TouchableOpacity>
-        </View>
-        
-        {/* Platform-specific KeyboardAvoidingView for iOS */}
-        {Platform.OS === 'ios' ? <KeyboardAvoidingView behavior="padding" /> : null}
+        </ScrollView>
       </KeyboardAvoidingView>
     </ImageBackground>
   );
@@ -116,12 +93,13 @@ const Start = ({ navigation }) => {
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
-    justifyContent: 'flex-end', // Position content at bottom
   },
   container: {
     flex: 1,
+  },
+  scrollContainer: {
+    flexGrow: 1,
     justifyContent: 'space-between',
-    alignItems: 'center',
     paddingVertical: 50,
   },
   title: {
@@ -129,20 +107,15 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: '#FFFFFF',
     textAlign: 'center',
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingTop: 80,
+    marginTop: 80,
   },
   inputContainer: {
     backgroundColor: '#FFFFFF',
-    padding: 30, // Increased padding for better spacing
-    marginHorizontal: 20, // Equal left and right margins
-    marginBottom: 20, // Bottom margin from screen edge
+    padding: 30,
+    marginHorizontal: 20,
+    marginBottom: 20,
     borderRadius: 10,
-    width: '88%',
     alignItems: 'center',
-    minHeight: 300, // Ensure adequate height for content
   },
   nameInputContainer: {
     flexDirection: 'row',
@@ -152,7 +125,7 @@ const styles = StyleSheet.create({
     borderColor: '#757083',
     borderRadius: 5,
     paddingHorizontal: 15,
-    marginBottom: 30, // Added spacing below name input
+    marginBottom: 30,
   },
   avatarIcon: {
     width: 20,
@@ -171,14 +144,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '300',
     color: '#757083',
-    marginBottom: 15, // Spacing below text
-    alignSelf: 'flex-start', // Align to left
+    marginBottom: 15,
+    alignSelf: 'flex-start',
   },
   colorContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '80%',
-    marginBottom: 30, // Added spacing below color buttons
+    marginBottom: 30,
   },
   colorOption: {
     width: 50,
