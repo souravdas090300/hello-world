@@ -13,7 +13,7 @@ import Start from './components/Start';
 // Create the navigation stack
 const Stack = createNativeStackNavigator();
 
-// Firebase configuration object
+// Your Firebase configuration
 const firebaseConfig = {
   apiKey: "AIzaSyCQbV9xrL13sOssae19uFWGPkqGBF76AuY",
   authDomain: "shopping-lists-demo-c71aa.firebaseapp.com",
@@ -24,10 +24,10 @@ const firebaseConfig = {
   measurementId: "G-97L1RF2LL1"
 };
 
-// Initialize Firebase app with the configuration
+// Initialize Firebase
 const app = initializeApp(firebaseConfig);
 
-// Initialize Cloud Firestore
+// Initialize Cloud Firestore and get a reference to the service
 const db = getFirestore(app);
 
 // Initialize Firebase Auth with AsyncStorage persistence
@@ -35,14 +35,8 @@ const auth = initializeAuth(app, {
   persistence: getReactNativePersistence(ReactNativeAsyncStorage)
 });
 
-// Ignore specific warnings
-LogBox.ignoreLogs([
-  "AsyncStorage has been extracted from",
-  "@firebase/auth: Auth",
-  "Reanimated",
-  "react-native-reanimated",
-  "react-native-worklets"
-]);
+// Ignore warnings
+LogBox.ignoreLogs(["AsyncStorage has been extracted from"]);
 
 const App = () => {
   return (
@@ -52,13 +46,12 @@ const App = () => {
           name="Start"
           options={{ headerShown: false }}
         >
-          {props => <Start auth={auth} {...props} />}
+          {props => <Start {...props} auth={auth} />}
         </Stack.Screen>
         <Stack.Screen 
           name="Chat"
-          options={{ title: 'Chat' }}
         >
-          {props => <Chat db={db} {...props} />}
+          {props => <Chat {...props} db={db} />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
@@ -66,3 +59,4 @@ const App = () => {
 }
 
 export default App;
+
