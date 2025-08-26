@@ -5,6 +5,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { initializeApp } from "firebase/app";
 import { getReactNativePersistence, initializeAuth } from 'firebase/auth';
 import { disableNetwork, enableNetwork, getFirestore } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
 import { useEffect } from "react";
 import { Alert, LogBox } from 'react-native';
 
@@ -31,6 +32,9 @@ const app = initializeApp(firebaseConfig);
 
 // Initialize Cloud Firestore and get a reference to the service
 const db = getFirestore(app);
+
+// Initialize Firebase Storage
+const storage = getStorage(app);
 
 // Initialize Firebase Auth with AsyncStorage persistence
 const auth = initializeAuth(app, {
@@ -64,7 +68,12 @@ const App = () => {
         <Stack.Screen 
           name="Chat"
         >
-          {props => <Chat {...props} db={db} isConnected={connectionStatus.isConnected} />}
+          {props => <Chat 
+            {...props} 
+            db={db} 
+            storage={storage}
+            isConnected={connectionStatus.isConnected} 
+          />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
@@ -72,4 +81,3 @@ const App = () => {
 }
 
 export default App;
-
