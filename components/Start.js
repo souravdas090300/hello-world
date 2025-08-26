@@ -6,7 +6,6 @@ import {
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -47,52 +46,48 @@ const Start = ({ navigation, auth }) => {
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         >
-          <ScrollView 
-            contentContainerStyle={styles.scrollContainer}
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
-          >
+          <View style={styles.titleContainer}>
             <Text style={styles.title}>Chat App</Text>
-            
-            <View style={styles.inputContainer}>
-              <View style={styles.nameInputContainer}>
-                <Image
-                  source={require('../assets/images/avatar-icon.png')}
-                  style={styles.avatarIcon}
-                />
-                <TextInput
-                  style={styles.textInput}
-                  value={name}
-                  onChangeText={setName}
-                  placeholder="Your Name"
-                  placeholderTextColor="#757083"
-                />
-              </View>
-              
-              <Text style={styles.colorSelectorText}>Choose Background Color:</Text>
-              
-              <View style={styles.colorSelector}>
-                {colors.map((color, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={[
-                      styles.colorOption,
-                      { backgroundColor: color },
-                      backgroundColor === color && styles.selectedColor
-                    ]}
-                    onPress={() => setBackgroundColor(color)}
-                  />
-                ))}
-              </View>
-              
-              <TouchableOpacity
-                style={styles.button}
-                onPress={signInUser}
-              >
-                <Text style={styles.buttonText}>Start Chatting</Text>
-              </TouchableOpacity>
+          </View>
+          
+          <View style={styles.inputContainer}>
+            <View style={styles.nameInputContainer}>
+              <Image
+                source={require('../assets/images/avatar-icon.png')}
+                style={styles.avatarIcon}
+              />
+              <TextInput
+                style={styles.textInput}
+                value={name}
+                onChangeText={setName}
+                placeholder="Your Name"
+                placeholderTextColor="#757083"
+              />
             </View>
-          </ScrollView>
+            
+            <Text style={styles.colorSelectorText}>Choose Background Color:</Text>
+            
+            <View style={styles.colorSelector}>
+              {colors.map((color, index) => (
+                <TouchableOpacity
+                  key={index}
+                  style={[
+                    styles.colorOption,
+                    { backgroundColor: color },
+                    backgroundColor === color && styles.selectedColor
+                  ]}
+                  onPress={() => setBackgroundColor(color)}
+                />
+              ))}
+            </View>
+            
+            <TouchableOpacity
+              style={styles.button}
+              onPress={signInUser}
+            >
+              <Text style={styles.buttonText}>Start Chatting</Text>
+            </TouchableOpacity>
+          </View>
         </KeyboardAvoidingView>
       </ImageBackground>
     </View>
@@ -108,28 +103,29 @@ const styles = StyleSheet.create({
   },
   keyboardAvoidingView: {
     flex: 1,
+    justifyContent: 'space-between',
   },
-  scrollContainer: {
-    flexGrow: 1,
+  titleContainer: {
+    flex: 0.56, // 56% for title area (100% - 44% for input container)
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 20,
-    minHeight: '100%',
   },
   title: {
     fontSize: 45,
     fontWeight: '600',
     color: '#FFFFFF',
-    margin: 25,
     textAlign: 'center',
   },
   inputContainer: {
     backgroundColor: 'white',
-    padding: 20,
-    borderRadius: 10,
-    margin: 20,
     width: '88%',
-    alignItems: 'center',
+    minHeight: '44%',
+    alignSelf: 'center',
+    marginBottom: 0,
+    padding: '6%',
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    justifyContent: 'space-around',
   },
   nameInputContainer: {
     flexDirection: 'row',
@@ -158,13 +154,14 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '300',
     color: '#757083',
-    marginBottom: 10,
+    textAlign: 'center',
+    marginVertical: 10,
   },
   colorSelector: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     width: '100%',
-    marginBottom: 20,
+    marginVertical: 20,
   },
   colorOption: {
     width: 50,
@@ -177,10 +174,11 @@ const styles = StyleSheet.create({
   },
   button: {
     backgroundColor: '#757083',
-    padding: 15,
+    padding: 20,
     borderRadius: 5,
     width: '100%',
     alignItems: 'center',
+    marginTop: 20,
   },
   buttonText: {
     fontSize: 16,

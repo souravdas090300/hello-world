@@ -1,10 +1,12 @@
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
+import { useNetInfo } from '@react-native-community/netinfo';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { initializeApp } from "firebase/app";
 import { getReactNativePersistence, initializeAuth } from 'firebase/auth';
-import { getFirestore } from "firebase/firestore";
-import { LogBox } from 'react-native';
+import { disableNetwork, enableNetwork, getFirestore } from "firebase/firestore";
+import { useEffect } from "react";
+import { Alert, LogBox } from 'react-native';
 
 // Import the application screens
 import Chat from './components/Chat';
@@ -39,6 +41,17 @@ const auth = initializeAuth(app, {
 LogBox.ignoreLogs(["AsyncStorage has been extracted from"]);
 
 const App = () => {
+  const connectionStatus = useNetInfo();
+
+  useEffect(() => {
+    if (connectionStatus.isConnected === false) {
+      Alert.alert("Connection Lost!");
+      disableNetwork(db);
+    } else if (connectionStatus.isConnected === true) {
+      enableNetwork(db);
+    }
+  }, [connectionStatus.isConnected]);
+
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Start">
@@ -51,7 +64,7 @@ const App = () => {
         <Stack.Screen 
           name="Chat"
         >
-          {props => <Chat {...props} db={db} />}
+          {props => <Chat {...props} db={db} isConnected={connectionStatus.isConnected} />}
         </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
