@@ -2,7 +2,11 @@ import { signInAnonymously } from 'firebase/auth';
 import { useState } from 'react';
 import {
   Alert,
+  Image,
   ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -38,40 +42,58 @@ const Start = ({ navigation, auth }) => {
         style={styles.backgroundImage}
         resizeMode="cover"
       >
-        <Text style={styles.title}>Chat App</Text>
-        
-        <View style={styles.inputContainer}>
-          <TextInput
-            style={styles.textInput}
-            value={name}
-            onChangeText={setName}
-            placeholder="Your Name"
-            placeholderTextColor="#757083"
-          />
-          
-          <Text style={styles.colorSelectorText}>Choose Background Color:</Text>
-          
-          <View style={styles.colorSelector}>
-            {colors.map((color, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.colorOption,
-                  { backgroundColor: color },
-                  backgroundColor === color && styles.selectedColor
-                ]}
-                onPress={() => setBackgroundColor(color)}
-              />
-            ))}
-          </View>
-          
-          <TouchableOpacity
-            style={styles.button}
-            onPress={signInUser}
+        <KeyboardAvoidingView 
+          style={styles.keyboardAvoidingView}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
+        >
+          <ScrollView 
+            contentContainerStyle={styles.scrollContainer}
+            keyboardShouldPersistTaps="handled"
+            showsVerticalScrollIndicator={false}
           >
-            <Text style={styles.buttonText}>Start Chatting</Text>
-          </TouchableOpacity>
-        </View>
+            <Text style={styles.title}>Chat App</Text>
+            
+            <View style={styles.inputContainer}>
+              <View style={styles.nameInputContainer}>
+                <Image
+                  source={require('../assets/images/avatar-icon.png')}
+                  style={styles.avatarIcon}
+                />
+                <TextInput
+                  style={styles.textInput}
+                  value={name}
+                  onChangeText={setName}
+                  placeholder="Your Name"
+                  placeholderTextColor="#757083"
+                />
+              </View>
+              
+              <Text style={styles.colorSelectorText}>Choose Background Color:</Text>
+              
+              <View style={styles.colorSelector}>
+                {colors.map((color, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={[
+                      styles.colorOption,
+                      { backgroundColor: color },
+                      backgroundColor === color && styles.selectedColor
+                    ]}
+                    onPress={() => setBackgroundColor(color)}
+                  />
+                ))}
+              </View>
+              
+              <TouchableOpacity
+                style={styles.button}
+                onPress={signInUser}
+              >
+                <Text style={styles.buttonText}>Start Chatting</Text>
+              </TouchableOpacity>
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </ImageBackground>
     </View>
   );
@@ -83,14 +105,23 @@ const styles = StyleSheet.create({
   },
   backgroundImage: {
     flex: 1,
+  },
+  keyboardAvoidingView: {
+    flex: 1,
+  },
+  scrollContainer: {
+    flexGrow: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 20,
+    minHeight: '100%',
   },
   title: {
     fontSize: 45,
     fontWeight: '600',
     color: '#FFFFFF',
     margin: 25,
+    textAlign: 'center',
   },
   inputContainer: {
     backgroundColor: 'white',
@@ -100,16 +131,28 @@ const styles = StyleSheet.create({
     width: '88%',
     alignItems: 'center',
   },
-  textInput: {
-    fontSize: 16,
-    fontWeight: '300',
-    color: '#757083',
+  nameInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
     borderColor: '#757083',
     borderRadius: 5,
-    padding: 15,
+    paddingHorizontal: 15,
+    paddingVertical: 10,
+    backgroundColor: '#FFFFFF',
     width: '100%',
     marginBottom: 15,
+  },
+  avatarIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 10,
+  },
+  textInput: {
+    flex: 1,
+    fontSize: 16,
+    fontWeight: '300',
+    color: '#757083',
   },
   colorSelectorText: {
     fontSize: 16,
