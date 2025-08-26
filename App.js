@@ -1,34 +1,68 @@
+import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { initializeApp } from "firebase/app";
+import { getReactNativePersistence, initializeAuth } from 'firebase/auth';
+import { getFirestore } from "firebase/firestore";
+import { LogBox } from 'react-native';
 
-// Import the screens we want to navigate between
+// Import the application screens
 import Chat from './components/Chat';
 import Start from './components/Start';
 
-// Create the navigator for handling navigation between screens
+// Create the navigation stack
 const Stack = createNativeStackNavigator();
 
-// Main App component that sets up navigation structure
+// Firebase configuration object
+const firebaseConfig = {
+  apiKey: "AIzaSyCQbV9xrL13sOssae19uFWGPkqGBF76AuY",
+  authDomain: "shopping-lists-demo-c71aa.firebaseapp.com",
+  projectId: "shopping-lists-demo-c71aa",
+  storageBucket: "shopping-lists-demo-c71aa.firebasestorage.app",
+  messagingSenderId: "248904910931",
+  appId: "1:248904910931:web:d665f2f853f38a53e4dea6",
+  measurementId: "G-97L1RF2LL1"
+};
+
+// Initialize Firebase app with the configuration
+const app = initializeApp(firebaseConfig);
+
+// Initialize Cloud Firestore
+const db = getFirestore(app);
+
+// Initialize Firebase Auth with AsyncStorage persistence
+const auth = initializeAuth(app, {
+  persistence: getReactNativePersistence(ReactNativeAsyncStorage)
+});
+
+// Ignore specific warnings
+LogBox.ignoreLogs([
+  "AsyncStorage has been extracted from",
+  "@firebase/auth: Auth",
+  "Reanimated",
+  "react-native-reanimated",
+  "react-native-worklets"
+]);
+
 const App = () => {
   return (
     <NavigationContainer>
-      <Stack.Navigator
-        initialRouteName="Start"
-      >
-        {/* Start screen - entry point of the app */}
+      <Stack.Navigator initialRouteName="Start">
         <Stack.Screen
           name="Start"
-          component={Start}
           options={{ headerShown: false }}
-        />
-        {/* Chat screen - displays chat interface with user's name in header */}
-        <Stack.Screen
+        >
+          {props => <Start auth={auth} {...props} />}
+        </Stack.Screen>
+        <Stack.Screen 
           name="Chat"
-          component={Chat}
-        />
+          options={{ title: 'Chat' }}
+        >
+          {props => <Chat db={db} {...props} />}
+        </Stack.Screen>
       </Stack.Navigator>
     </NavigationContainer>
   );
-};
+}
 
 export default App;

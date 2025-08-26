@@ -1,3 +1,4 @@
+import { signInAnonymously } from 'firebase/auth';
 import { useState } from 'react';
 import {
   Alert,
@@ -13,20 +14,31 @@ import {
   View
 } from 'react-native';
 
-const Start = ({ navigation }) => {
+const Start = ({ navigation, auth }) => {
   const [name, setName] = useState('');
   const [backgroundColor, setBackgroundColor] = useState('#090C08');
   const colors = ['#090C08', '#474056', '#8A95A5', '#B9C6AE'];
 
-  const handleStartChat = () => {
-    if (name.trim()) {
-      navigation.navigate('Chat', { 
-        name: name.trim(), 
-        backgroundColor: backgroundColor 
+  // Function to sign in user anonymously
+  const signInUser = () => {
+    signInAnonymously(auth)
+      .then((result) => {
+        // Navigate to Chat screen with user ID, name, and background color
+        navigation.navigate('Chat', { 
+          userID: result.user.uid,
+          name: name || 'Anonymous', 
+          backgroundColor: backgroundColor 
+        });
+        Alert.alert("Signed in Successfully!");
+      })
+      .catch((error) => {
+        Alert.alert("Unable to sign in, try again later.");
       });
-    } else {
-      Alert.alert('Please enter your name');
-    }
+  };
+
+  const handleStartChat = () => {
+    // Call signInUser to authenticate and navigate
+    signInUser();
   };
 
   return (
@@ -66,11 +78,15 @@ const Start = ({ navigation }) => {
             <View style={styles.colorContainer}>
               {colors.map((color, index) => (
                 <TouchableOpacity
+                  accessible={true}
+                  accessibilityLabel="More options"
+                  accessibilityHint="Choose a background color for the chat screen"
+                  accessibilityRole="button"
                   key={index}
                   style={[
-                    styles.colorOption,
+                    styles.colorButton,
                     { backgroundColor: color },
-                    backgroundColor === color && styles.selectedColor
+                    backgroundColor === color ? styles.selectedColor : null
                   ]}
                   onPress={() => setBackgroundColor(color)}
                 />
@@ -78,10 +94,14 @@ const Start = ({ navigation }) => {
             </View>
             
             <TouchableOpacity
-              style={styles.button}
+              style={styles.startButton}
               onPress={handleStartChat}
+              accessible={true}
+              accessibilityLabel="Start chatting"
+              accessibilityHint="Tap to start chatting"
+              accessibilityRole="button"
             >
-              <Text style={styles.buttonText}>Start Chatting</Text>
+              <Text style={styles.startButtonText}>Start Chatting</Text>
             </TouchableOpacity>
           </View>
         </ScrollView>
@@ -93,84 +113,120 @@ const Start = ({ navigation }) => {
 const styles = StyleSheet.create({
   backgroundImage: {
     flex: 1,
+    width: '100%',
+    height: '100%',
   },
   container: {
     flex: 1,
   },
   scrollContainer: {
     flexGrow: 1,
-    justifyContent: 'space-between',
-    paddingVertical: 50,
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   title: {
     fontSize: 45,
     fontWeight: '600',
     color: '#FFFFFF',
     textAlign: 'center',
-    marginTop: 80,
+    marginTop: 60,
+    marginBottom: 'auto',
+    textShadowColor: 'rgba(0, 0, 0, 0.3)',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 5,
   },
   inputContainer: {
-    backgroundColor: '#FFFFFF',
-    padding: 30,
-    marginHorizontal: 20,
-    marginBottom: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.9)',
     borderRadius: 10,
+    padding: 30,
+    width: '88%',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 6,
+    elevation: 8,
+    marginBottom: 20,
   },
   nameInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '100%',
-    borderWidth: 1,
+    borderWidth: 2,
     borderColor: '#757083',
-    borderRadius: 5,
+    borderRadius: 8,
+    marginBottom: 20,
     paddingHorizontal: 15,
-    marginBottom: 30,
+    paddingVertical: 10,
+    backgroundColor: '#FFFFFF',
+    width: '100%',
   },
   avatarIcon: {
     width: 20,
     height: 20,
-    marginRight: 15,
-    opacity: 0.5,
+    marginRight: 10,
   },
   textInput: {
     flex: 1,
-    padding: 15,
     fontSize: 16,
     fontWeight: '300',
     color: '#757083',
+    opacity: 1,
   },
   colorText: {
     fontSize: 16,
     fontWeight: '300',
     color: '#757083',
     marginBottom: 15,
-    alignSelf: 'flex-start',
+    textAlign: 'center',
   },
   colorContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '80%',
+    justifyContent: 'space-around',
+    width: '100%',
     marginBottom: 30,
   },
-  colorOption: {
+  colorButton: {
     width: 50,
     height: 50,
     borderRadius: 25,
     margin: 5,
+    borderWidth: 3,
+    borderColor: 'transparent',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.2,
+    shadowRadius: 3,
+    elevation: 3,
   },
   selectedColor: {
-    borderWidth: 3,
     borderColor: '#757083',
+    borderWidth: 3,
   },
-  button: {
+  startButton: {
     backgroundColor: '#757083',
-    padding: 15,
-    borderRadius: 5,
+    borderRadius: 8,
+    paddingVertical: 15,
+    paddingHorizontal: 25,
     width: '100%',
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 4,
+    elevation: 5,
   },
-  buttonText: {
+  startButtonText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
