@@ -1,7 +1,21 @@
+/**
+ * Chat.js - Main chat interface component
+ * 
+ * This component combines Exercise 5.2 (Basic Chat UI) and Exercise 5.5 (Communication Features)
+ * following both tutor and mentor instructions exactly.
+ * 
+ * Features:
+ * - Real-time messaging with Firebase Firestore
+ * - Offline message caching with AsyncStorage  
+ * - Image sharing via camera and photo library
+ * - Location sharing with map display
+ * - Custom message bubbles and input toolbar
+ * - Username display and accessibility features
+ */
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { addDoc, collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { Keyboard, KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Platform, KeyboardAvoidingView } from 'react-native';
 import { Bubble, GiftedChat, InputToolbar } from 'react-native-gifted-chat';
 import MapView from 'react-native-maps';
 import CustomActions from './CustomActions';
@@ -26,10 +40,12 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
 
   const loadCachedMessages = async () => {
     try {
-      const cachedMessages = await AsyncStorage.getItem("messages") || '[]';
-      setMessages(JSON.parse(cachedMessages));
+      const cachedMessages = await AsyncStorage.getItem("messages");
+      if (cachedMessages) {
+        setMessages(JSON.parse(cachedMessages));
+      }
     } catch (error) {
-      console.log(error.message);
+      console.log('Error loading cached messages:', error.message);
     }
   }
 
@@ -48,29 +64,20 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
   }
 
   const renderInputToolbar = (props) => {
-    if (isConnected === false) {
-      return null;
-    } else {
+    if (isConnected) {
       return (
-        <InputToolbar 
-          {...props} 
+        <InputToolbar
+          {...props}
           containerStyle={styles.inputToolbar}
           primaryStyle={styles.inputPrimary}
-          textInputStyle={styles.textInput}
-          textInputProps={{
-            ...props.textInputProps,
-            editable: isConnected,
-            placeholder: isConnected ? 'Type a message...' : 'You are offline',
-            style: styles.textInput
-          }}
         />
       );
     }
   }
 
   const renderCustomActions = (props) => {
-    return <CustomActions storage={storage} userID={userID} {...props} />;
-  };
+    return <CustomActions storage={storage} userID={userID} userName={name} onSend={onSend} {...props} />;
+  }
 
   const renderCustomView = (props) => {
     const { currentMessage } = props;
@@ -100,15 +107,6 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
   }, []);
 
   useEffect(() => {
-    // Dismiss keyboard when navigating back
-    const unsubscribe = navigation.addListener('beforeRemove', () => {
-      Keyboard.dismiss();
-    });
-
-    return unsubscribe;
-  }, [navigation]);
-
-  useEffect(() => {
     if (isConnected === true) {
       unsubMessages = onSnapshot(
         query(collection(db, "messages"), orderBy("createdAt", "desc")), 
@@ -116,7 +114,7 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
           let newMessages = [];
           docs.forEach(doc => {
             newMessages.push({
-              id: doc.id,
+              _id: doc.id,
               ...doc.data(),
               createdAt: new Date(doc.data().createdAt.toMillis())
             });
@@ -138,23 +136,21 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
     <View style={[styles.container, { backgroundColor: backgroundColor }]}>
       <GiftedChat
         messages={messages}
+        renderBubble={renderBubble}
+        renderInputToolbar={renderInputToolbar}
+        renderActions={renderCustomActions}
+        renderCustomView={renderCustomView}
         onSend={messages => onSend(messages)}
         user={{
           _id: userID,
           name: name,
         }}
-        renderBubble={renderBubble}
-        renderInputToolbar={renderInputToolbar}
-        renderActions={renderCustomActions}
-        renderCustomView={renderCustomView}
-        renderUsernameOnMessage={true}
-        keyboardShouldPersistTaps={'never'}
-        minInputToolbarHeight={Platform.OS === 'ios' ? 44 : 50}
+        keyboardShouldPersistTaps='never'
         alwaysShowSend={true}
-        bottomOffset={Platform.OS === 'ios' ? 0 : 0}
-        messagesContainerStyle={{ paddingBottom: 0 }}
+        renderUsernameOnMessage={true}
       />
       {Platform.OS === 'android' ? <KeyboardAvoidingView behavior="height" /> : null}
+      {Platform.OS === 'ios' ? <KeyboardAvoidingView behavior="padding" /> : null}
     </View>
   )
 }
@@ -167,33 +163,14 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: '#E8E8E8',
     backgroundColor: '#FFFFFF',
-    paddingVertical: 8,
-    paddingHorizontal: 15,
-    marginBottom: 0,
-    minHeight: Platform.OS === 'ios' ? 44 : 50,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
   },
   inputPrimary: {
     alignItems: 'center',
-    paddingHorizontal: 15,
-    paddingVertical: 8,
+    paddingHorizontal: 10,
+    paddingVertical: 5,
     marginHorizontal: 5,
-    marginVertical: 0,
-    flex: 1,
-  },
-  textInput: {
-    fontSize: 16,
-    lineHeight: 20,
-    marginTop: 2,
-    marginBottom: 2,
-    paddingTop: 8,
-    paddingBottom: 8,
-    paddingHorizontal: 12,
-    minHeight: Platform.OS === 'ios' ? 36 : 40,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: '#E8E8E8',
-    backgroundColor: '#FFFFFF',
-    flex: 1,
   },
 });
 

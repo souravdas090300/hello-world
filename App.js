@@ -1,3 +1,16 @@
+/**
+ * App.js - Main application entry point
+ * 
+ * This file initializes the React Native chat application with:
+ * - Firebase configuration (Firestore, Storage, Authentication)
+ * - Navigation setup with React Navigation
+ * - ActionSheet provider for communication features
+ * - Network connectivity monitoring
+ * 
+ * The app provides a complete chat experience with real-time messaging,
+ * image sharing, location services, and offline functionality.
+ */
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import ReactNativeAsyncStorage from '@react-native-async-storage/async-storage';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { NavigationContainer } from '@react-navigation/native';
@@ -21,7 +34,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyCQbV9xrL13sOssae19uFWGPkqGBF76AuY",
   authDomain: "shopping-lists-demo-c71aa.firebaseapp.com",
   projectId: "shopping-lists-demo-c71aa",
-  storageBucket: "shopping-lists-demo-c71aa.firebasestorage.app",
+  storageBucket: "shopping-lists-demo-c71aa.appspot.com",
   messagingSenderId: "248904910931",
   appId: "1:248904910931:web:d665f2f853f38a53e4dea6",
   measurementId: "G-97L1RF2LL1"
@@ -33,8 +46,8 @@ const app = initializeApp(firebaseConfig);
 // Initialize Cloud Firestore and get a reference to the service
 const db = getFirestore(app);
 
-// Initialize Firebase Storage
-const storage = getStorage(app);
+// Initialize Firebase Storage with explicit bucket
+const storage = getStorage(app, "gs://shopping-lists-demo-c71aa.appspot.com");
 
 // Initialize Firebase Auth with AsyncStorage persistence
 const auth = initializeAuth(app, {
@@ -57,26 +70,28 @@ const App = () => {
   }, [connectionStatus.isConnected]);
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Start">
-        <Stack.Screen
-          name="Start"
-          options={{ headerShown: false }}
-        >
-          {props => <Start {...props} auth={auth} />}
-        </Stack.Screen>
-        <Stack.Screen 
-          name="Chat"
-        >
-          {props => <Chat 
-            {...props} 
-            db={db} 
-            storage={storage}
-            isConnected={connectionStatus.isConnected} 
-          />}
-        </Stack.Screen>
-      </Stack.Navigator>
-    </NavigationContainer>
+    <ActionSheetProvider>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Start">
+          <Stack.Screen
+            name="Start"
+            options={{ headerShown: false }}
+          >
+            {props => <Start {...props} auth={auth} />}
+          </Stack.Screen>
+          <Stack.Screen 
+            name="Chat"
+          >
+            {props => <Chat 
+              {...props} 
+              db={db} 
+              storage={storage}
+              isConnected={connectionStatus.isConnected} 
+            />}
+          </Stack.Screen>
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ActionSheetProvider>
   );
 }
 
