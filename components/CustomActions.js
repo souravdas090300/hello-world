@@ -1,7 +1,7 @@
 // Import necessary dependencies for communication features
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import * as ImagePicker from 'expo-image-picker';
-import * * Location from 'expo-location';
+import * as Location from 'expo-location';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
