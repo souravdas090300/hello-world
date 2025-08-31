@@ -1,30 +1,27 @@
 /**
  * Chat.js - Main chat interface component
  * 
- * This component combines Exercise 5.2 (Basic Chat UI) and Exercise 5.5 (Communication Features)
- * following both tutor and mentor instructions exactly.
- * 
- * Features:
- * - Real-time messaging with Firebase Firestore
- * - Offline message caching with AsyncStorage  
- * - Image sharing via camera and photo library
- * - Location sharing with map display
- * - Custom message bubbles and input toolbar
- * - Username display and accessibility features
+ * Provides a complete chat experience with:
+ * - Real-time messaging via Firebase Firestore
+ * - Custom message bubbles and styling
+ * - Communication features (images, location, audio)
+ * - Offline message caching
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Audio } from 'expo-av';
 import { addDoc, collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, StyleSheet, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import { Bubble, GiftedChat, InputToolbar } from 'react-native-gifted-chat';
 import MapView from 'react-native-maps';
 import CustomActions from './CustomActions';
 
-const Chat = ({ route, navigation, db, storage, isConnected }) => {
+const Chat = ({ route, navigation, db, storage, auth, isConnected }) => {
   const { name, backgroundColor, userID } = route.params;
   const [messages, setMessages] = useState([]);
 
   let unsubMessages;
+  let soundObject = null;
 
   const onSend = (newMessages) => {
     addDoc(collection(db, "messages"), newMessages[0]);
@@ -76,7 +73,14 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
   }
 
   const renderCustomActions = (props) => {
-    return <CustomActions storage={storage} userID={userID} userName={name} onSend={onSend} {...props} />;
+    return <CustomActions 
+      storage={storage} 
+      auth={auth}
+      userID={userID} 
+      userName={name} 
+      onSend={onSend} 
+      {...props} 
+    />;
   }
 
   const renderCustomView = (props) => {
@@ -100,6 +104,24 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
       );
     }
     return null;
+  }
+
+  /**
+   * Renders a custom audio message bubble with play button
+   */
+  const renderAudioBubble = (props) => {
+    return <View {...props}>
+      <TouchableOpacity
+        style={{ backgroundColor: "#FF0", borderRadius: 10, margin: 5 }}
+        onPress={async () => {
+          if (soundObject) soundObject.unloadAsync();
+          const { sound } = await Audio.Sound.createAsync({ uri: props.currentMessage.audio });
+          soundObject = sound;
+          await sound.playAsync();
+        }}>
+        <Text style={{ textAlign: "center", color: 'black', padding: 5 }}>Play Sound</Text>
+      </TouchableOpacity>
+    </View>
   }
 
   useEffect(() => {
@@ -129,6 +151,7 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
 
     return () => {
       if (unsubMessages) unsubMessages();
+      if (soundObject) soundObject.unloadAsync();
     }
   }, [isConnected]);
 
@@ -140,6 +163,7 @@ const Chat = ({ route, navigation, db, storage, isConnected }) => {
         renderInputToolbar={renderInputToolbar}
         renderActions={renderCustomActions}
         renderCustomView={renderCustomView}
+        renderMessageAudio={renderAudioBubble}
         onSend={messages => onSend(messages)}
         user={{
           _id: userID,

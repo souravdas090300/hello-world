@@ -19,6 +19,10 @@ A comprehensive React Native chat application built with Expo, featuring real-ti
 - **📍 Location Sharing**: 
   - Share current GPS location
   - Display locations as interactive maps in chat
+- **🎵 Audio Recording (Bonus)**: 
+  - Record voice messages using device microphone
+  - Play audio messages with custom audio player
+  - Upload audio files to Firebase Storage
 - **♿ Accessibility**: Full accessibility support with proper labels and hints
 
 ### User Experience
@@ -48,6 +52,7 @@ A comprehensive React Native chat application built with Expo, featuring real-ti
 ### Communication APIs
 - **expo-image-picker 16.1.4** - Camera and photo library access
 - **expo-location 18.1.6** - GPS location services
+- **expo-av** - Audio recording and playback capabilities
 - **react-native-maps 1.20.1** - Map display for locations
 
 ### Storage & Offline
@@ -98,7 +103,7 @@ Before setting up the project, ensure you have the following installed:
 
 1. **Clone the Repository**
    ```bash
-   git clone https://github.com/your-username/hello-world.git
+   git clone https://github.com/souravdas090300/hello-world.git
    cd hello-world
    ```
 
@@ -185,11 +190,13 @@ After following the setup steps:
      - "Select an image from library"
      - "Take a photo" 
      - "Share location"
+     - "Record a sound"
 
 3. **Expected Behavior**:
    - Messages appear in real-time
    - Images upload and display in chat bubbles
    - Location shows as an interactive map
+   - Audio messages display with "Play Sound" button
    - Messages persist when app is restarted
 
 ## 📁 Project Structure
@@ -242,6 +249,7 @@ The app requires the following device permissions:
 - **Camera**: For taking photos
 - **Photo Library**: For selecting existing images  
 - **Location**: For sharing current location
+- **Microphone**: For recording audio messages
 
 Permissions are requested automatically when features are used.
 
@@ -304,77 +312,12 @@ This project is part of an educational assignment for the Full-Stack Immersion c
 
 ---
 
+## 🎓 Course Information
+
 **Course**: Full-Stack Immersion  
 **Achievement**: 5 (Exercises 5.1-5.5)  
 **Focus**: React Native Mobile Development with Communication Features
 
-- React Native
-- Expo
-- React Navigation
-- JavaScript ES6+
-
-## Installation
-
-1. Clone this repository:
-   ```bash
-   git clone <repository-url>
-   cd hello-world
-   ```
-
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-
-3. Start the development server:
-   ```bash
-   npm start
-   ```
-
-4. Run on your device:
-   - Install Expo Go app on your mobile device
-   - Scan the QR code displayed in the terminal
-   - Alternatively, press 'a' for Android emulator or 'w' for web
-
-## Project Structure
-
-```
-hello-world/
-├── components/
-│   ├── Start.js          # Start screen component
-│   └── Chat.js           # Chat screen component
-├── App.js                # Main app component with navigation
-├── index.js              # App entry point
-└── assets/               # Images and other assets
-```
-
-## How to Use
-
-1. **Start Screen**: 
-   - Enter your name in the text input field
-   - Choose your preferred background color by tapping one of the color options
-   - Tap "Start Chatting" to proceed to the chat screen
-
-2. **Chat Screen**: 
-   - Your name appears in the navigation header
-   - The background color you selected is applied
-   - Chat functionality will be added in the next exercise
-
-## Next Steps
-
-This is the foundation for a chat app. In the next exercise, we will implement:
-- Real-time messaging
-- Image sharing
-- Location sharing
-- Offline message storage
-
-## Development Notes
-
-- Uses traditional React Navigation setup instead of Expo Router for learning purposes
-- Follows the tutorial instructions from Achievement 5
-- Implements proper state management and prop passing between screens
-- Uses TouchableOpacity for better button customization
-
-## Author
+## 👨‍💻 Author
 
 Created as part of the CareerFoundry Full-Stack Web Development Course.

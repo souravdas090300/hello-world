@@ -1,19 +1,33 @@
 // Import necessary dependencies for communication features
 import { useActionSheet } from '@expo/react-native-action-sheet';
+import { Audio } from 'expo-av';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { useEffect } from 'react';
 import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 /**
- * CustomActions component provides communication features for the chat app
+ * CustomActions Component
+ * 
+ * Provides communication features for the chat application including:
+ * - Camera photo capture
+ * - Photo library image selection  
+ * - GPS location sharing
+ * - Audio recording and playback
+ * - Firebase Storage integration for uploads
+ * 
+ * Uses Expo ActionSheet for native mobile interaction patterns
  */
-const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, auth, userID, userName }) => { // ← Added auth prop
+const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, auth, userID, userName }) => {
   const actionSheet = useActionSheet();
+  let recordingObject = null;
 
+  /**
+   * Displays ActionSheet with communication options and handles user selection
+   */
   const onActionPress = () => {
-    console.log('Action sheet button pressed');
-    const options = ['Select an image from library', 'Take a photo', 'Share location', 'Cancel'];
+    const options = ['Select an image from library', 'Take a photo', 'Share location', 'Record a sound', 'Cancel'];
     const cancelButtonIndex = options.length - 1;
     
     actionSheet.showActionSheetWithOptions(
@@ -22,21 +36,20 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, auth, use
         cancelButtonIndex,
       },
       async (buttonIndex) => {
-        console.log('Action sheet option selected:', buttonIndex);
         switch (buttonIndex) {
           case 0:
-            console.log('Calling pickImage...');
             pickImage();
             return;
           case 1:
-            console.log('Calling takePhoto...');
             takePhoto();
             return;
           case 2:
-            console.log('Calling getLocation...');
             getLocation();
+            return;
+          case 3:
+            startRecording();
+            return;
           default:
-            console.log('Action canceled or invalid option');
         }
       },
     );
@@ -48,46 +61,31 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, auth, use
     return `${userID}-${timeStamp}-${imageName}`;
   }
 
+  /**
+   * Uploads image to Firebase Storage and sends the image message to chat
+   * 
+   * @param {string} imageURI - Local URI of the image to upload
+   */
   const uploadAndSendImage = async (imageURI) => {
     try {
-      console.log('Starting upload process...');
-      
-      // Temporarily remove auth check for testing
-      console.log('Auth current user:', auth.currentUser ? 'authenticated' : 'not authenticated');
-
       const uniqueRefString = generateReference(imageURI);
-      console.log('Generated reference:', uniqueRefString);
-      
-      // Create storage reference with simplified path for testing
       const newUploadRef = ref(storage, uniqueRefString);
-      console.log('Created storage reference:', newUploadRef.fullPath);
       
+      // Convert image URI to blob for Firebase Storage upload
       const response = await fetch(imageURI);
-      console.log('Fetched image, status:', response.status);
-      
       if (!response.ok) {
         throw new Error(`Failed to fetch image: ${response.status}`);
       }
       
       const blob = await response.blob();
-      console.log('Created blob, size:', blob.size, 'type:', blob.type);
       
-      // Upload the image to Firebase Storage with metadata
-      console.log('Starting Firebase upload...');
-      // Upload with minimal metadata for testing
-      const metadata = {
-        contentType: blob.type || 'image/jpeg'
-      };
+      // Upload image to Firebase Storage
+      const snapshot = await uploadBytes(newUploadRef, blob);
       
-      console.log('Uploading with metadata:', metadata);
-      const snapshot = await uploadBytes(newUploadRef, blob, metadata);
-      console.log('Upload completed successfully');
-      
-      // Get the download URL
+      // Get download URL for the uploaded image
       const imageURL = await getDownloadURL(snapshot.ref);
-      console.log('Got download URL:', imageURL);
       
-      // Send the image message
+      // Send image message to chat
       onSend([{
         _id: Math.round(Math.random() * 1000000),
         text: '',
@@ -98,11 +96,9 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, auth, use
         },
         image: imageURL,
       }]);
-      console.log('Image message sent successfully');
       
     } catch (error) {
       console.error('Image upload error:', error);
-      console.error('Error details:', error.code, error.message);
       
       let errorMessage = 'Image upload failed. ';
       if (error.code === 'storage/unauthorized') {
@@ -139,62 +135,42 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, auth, use
     }
   }
 
+  /**
+   * Allows user to select an image from device photo library
+   */
   const pickImage = async () => {
     try {
-      console.log('Starting image picker...');
-      
       let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      console.log('Media library permissions:', permissions);
       
       if (permissions?.granted) {
-        console.log('Launching image library...');
-        
-        // Add small delay for Android compatibility
+        // Small delay for Android compatibility
         await new Promise(resolve => setTimeout(resolve, 100));
         
-        let mediaTypes;
-        if (ImagePicker.MediaType && ImagePicker.MediaType.Images) {
-          mediaTypes = ImagePicker.MediaType.Images;
-        } else if (ImagePicker.MediaTypeOptions) {
-          mediaTypes = ImagePicker.MediaTypeOptions.Images;
-        } else {
-          mediaTypes = 'Images';
-        }
-        
         let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: ImagePicker.MediaTypeOptions.Images, // Force use of working legacy API
+          mediaTypes: ImagePicker.MediaTypeOptions.Images,
           allowsEditing: false,
-          quality: 0.7, // Slightly higher quality
+          quality: 0.7,
           base64: false,
           exif: false,
-          selectionLimit: 1, // Explicitly set selection limit for Android
+          selectionLimit: 1,
         });
         
-        console.log('Image picker result:', result);
-        
         if (!result.canceled && result.assets && result.assets.length > 0) {
-          console.log('Image selected:', result.assets[0].uri);
           await uploadAndSendImage(result.assets[0].uri);
-        } else if (result.canceled) {
-          console.log('Image selection was canceled by user');
-        } else {
-          console.log('No image was selected');
+        } else if (!result.canceled) {
           Alert.alert("No Image", "No image was selected. Please try again.");
         }
       } else {
-        console.log('Media library permissions denied');
         Alert.alert(
           "Permission Required", 
           "Please grant photo library access to select images.",
-          [
-            { text: "OK" }
-          ]
+          [{ text: "OK" }]
         );
       }
     } catch (error) {
       console.error('Error in pickImage:', error);
       
-      // Handle specific Android NullPointerException
+      // Handle specific Android compatibility issues
       if (error.message.includes('NullPointerException') || error.message.includes('dispatchCancelPendingInputEvents')) {
         Alert.alert(
           "Android Compatibility Issue", 
@@ -214,9 +190,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, auth, use
         Alert.alert(
           "Error", 
           `Failed to open photo library: ${error.message}. Please try again.`,
-          [
-            { text: "OK" }
-          ]
+          [{ text: "OK" }]
         );
       }
     }
@@ -264,13 +238,86 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, auth, use
     }
   }
 
+  /**
+   * Starts audio recording after requesting microphone permissions
+   * Shows an alert with options to stop and send or cancel the recording
+   */
+  const startRecording = async () => {
+    try {
+      let permissions = await Audio.requestPermissionsAsync();
+      if (permissions?.granted) {
+        // iOS specific config to allow recording on iPhone devices
+        await Audio.setAudioModeAsync({
+          allowsRecordingIOS: true,
+          playsInSilentModeIOS: true
+        });
+        
+        Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY).then(results => {
+          return results.recording;
+        }).then(recording => {
+          recordingObject = recording;
+          Alert.alert('You are recording...', undefined, [
+            { text: 'Cancel', onPress: () => { stopRecording() } },
+            { text: 'Stop and Send', onPress: () => { sendRecordedSound() } },
+          ],
+          { cancelable: false }
+          );
+        })
+      }
+    } catch (err) {
+      Alert.alert('Failed to record!');
+    }
+  }
+
+  /**
+   * Stops the current recording and unloads it from memory
+   */
+  const stopRecording = async () => {
+    await Audio.setAudioModeAsync({
+      allowsRecordingIOS: false,
+      playsInSilentModeIOS: false
+    });
+    await recordingObject.stopAndUnloadAsync();
+  }
+
+  /**
+   * Stops recording, uploads audio file to Firebase Storage, and sends the audio message
+   */
+  const sendRecordedSound = async () => {
+    await stopRecording()
+    const uniqueRefString = generateReference(recordingObject.getURI());
+    const newUploadRef = ref(storage, uniqueRefString);
+    const response = await fetch(recordingObject.getURI());
+    const blob = await response.blob();
+    uploadBytes(newUploadRef, blob).then(async (snapshot) => {
+      const soundURL = await getDownloadURL(snapshot.ref)
+      onSend([{
+        _id: Math.round(Math.random() * 1000000),
+        text: '',
+        createdAt: new Date(),
+        user: {
+          _id: userID,
+          name: userName,
+        },
+        audio: soundURL,
+      }]);
+    });
+  }
+
+  // Cleanup function to unload recording if component unmounts during recording
+  useEffect(() => {
+    return () => {
+      if (recordingObject) recordingObject.stopAndUnloadAsync();
+    }
+  }, []);
+
   return (
     <TouchableOpacity 
       style={styles.container} 
       onPress={onActionPress}
       accessible={true}
       accessibilityLabel="More options"
-      accessibilityHint="Choose to send an image or your location"
+      accessibilityHint="Choose to send an image, your location, or record audio"
       accessibilityRole="button"
     >
       <View style={[styles.wrapper, wrapperStyle]}>
