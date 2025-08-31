@@ -22,6 +22,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, u
    * Display action sheet with communication options when button is pressed
    */
   const onActionPress = () => {
+    console.log('Action sheet button pressed');
     const options = ['Select an image from library', 'Take a photo', 'Share location', 'Cancel'];
     const cancelButtonIndex = options.length - 1;
     
@@ -32,16 +33,21 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, u
         cancelButtonIndex,
       },
       async (buttonIndex) => {
+        console.log('Action sheet option selected:', buttonIndex);
         switch (buttonIndex) {
           case 0:
+            console.log('Calling pickImage...');
             pickImage(); // Launch image library
             return;
           case 1:
+            console.log('Calling takePhoto...');
             takePhoto(); // Launch camera
             return;
           case 2:
+            console.log('Calling getLocation...');
             getLocation(); // Get current location
           default:
+            console.log('Action canceled or invalid option');
         }
       },
     );
@@ -156,19 +162,67 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, u
    * Requests permission and launches image picker
    */
   const pickImage = async () => {
-    let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (permissions?.granted) {
-      let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
-        allowsEditing: false,
-        quality: 0.5,
-      });
+    try {
+      console.log('Starting image picker...');
       
-      if (!result.canceled) {
-        await uploadAndSendImage(result.assets[0].uri);
+      // Request media library permissions
+      let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      console.log('Media library permissions:', permissions);
+      
+      if (permissions?.granted) {
+        console.log('Launching image library...');
+        
+        // Handle different versions of expo-image-picker
+        let mediaTypes;
+        if (ImagePicker.MediaType && ImagePicker.MediaType.Images) {
+          mediaTypes = ImagePicker.MediaType.Images;
+          console.log('Using ImagePicker.MediaType.Images');
+        } else if (ImagePicker.MediaTypeOptions && ImagePicker.MediaTypeOptions.Images) {
+          mediaTypes = ImagePicker.MediaTypeOptions.Images;
+          console.log('Using ImagePicker.MediaTypeOptions.Images (legacy)');
+        } else {
+          mediaTypes = 'Images';
+          console.log('Using string fallback: Images');
+        }
+        
+        let result = await ImagePicker.launchImageLibraryAsync({
+          mediaTypes: mediaTypes,
+          allowsEditing: false,
+          quality: 0.5,
+          base64: false,
+          exif: false,
+        });
+        
+        console.log('Image picker result:', result);
+        
+        if (!result.canceled && result.assets && result.assets.length > 0) {
+          console.log('Image selected:', result.assets[0].uri);
+          await uploadAndSendImage(result.assets[0].uri);
+        } else if (result.canceled) {
+          console.log('Image selection was canceled by user');
+        } else {
+          console.log('No image was selected');
+          Alert.alert("No Image", "No image was selected. Please try again.");
+        }
+      } else {
+        console.log('Media library permissions denied');
+        Alert.alert(
+          "Permission Required", 
+          "Please grant photo library access to select images. Go to Settings > Apps > Expo Go > Permissions > Photos and enable access.",
+          [
+            { text: "OK" }
+          ]
+        );
       }
-    } else {
-      Alert.alert("Permissions haven't been granted.");
+    } catch (error) {
+      console.error('Error in pickImage:', error);
+      Alert.alert(
+        "Error", 
+        `Failed to open photo library: ${error.message}. Please try again.`,
+        [
+          { text: "OK" }
+        ]
+      );
     }
   }
 
