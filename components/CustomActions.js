@@ -7,26 +7,15 @@ import { Alert, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 /**
  * CustomActions component provides communication features for the chat app
- * Includes image picker, camera, and location sharing functionality
- * @param {Object} props - Component props
- * @param {Object} props.storage - Firebase storage instance
- * @param {string} props.userID - Current user's ID
- * @param {string} props.userName - Current user's name
- * @param {Function} props.onSend - Function to send messages
  */
-const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, userName }) => {
-  // Initialize action sheet for displaying communication options
+const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, auth, userID, userName }) => { // ← Added auth prop
   const actionSheet = useActionSheet();
 
-  /**
-   * Display action sheet with communication options when button is pressed
-   */
   const onActionPress = () => {
     console.log('Action sheet button pressed');
     const options = ['Select an image from library', 'Take a photo', 'Share location', 'Cancel'];
     const cancelButtonIndex = options.length - 1;
     
-    // Show action sheet with options and handle user selection
     actionSheet.showActionSheetWithOptions(
       {
         options,
@@ -37,15 +26,15 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, u
         switch (buttonIndex) {
           case 0:
             console.log('Calling pickImage...');
-            pickImage(); // Launch image library
+            pickImage();
             return;
           case 1:
             console.log('Calling takePhoto...');
-            takePhoto(); // Launch camera
+            takePhoto();
             return;
           case 2:
             console.log('Calling getLocation...');
-            getLocation(); // Get current location
+            getLocation();
           default:
             console.log('Action canceled or invalid option');
         }
@@ -53,32 +42,25 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, u
     );
   };
 
-  /**
-   * Generate unique reference string for Firebase Storage uploads
-   * Combines user ID, timestamp, and original filename for uniqueness
-   * @param {string} uri - Local file URI
-   * @returns {string} Unique reference string
-   */
   const generateReference = (uri) => {
     const timeStamp = (new Date()).getTime();
     const imageName = uri.split("/")[uri.split("/").length - 1];
     return `${userID}-${timeStamp}-${imageName}`;
   }
 
-  /**
-   * Upload image to Firebase Storage and send as message
-   * Handles blob conversion, storage upload, and message sending
-   * @param {string} imageURI - Local image URI from camera or gallery
-   */
   const uploadAndSendImage = async (imageURI) => {
     try {
       console.log('Starting upload process...');
+      
+      // Temporarily remove auth check for testing
+      console.log('Auth current user:', auth.currentUser ? 'authenticated' : 'not authenticated');
+
       const uniqueRefString = generateReference(imageURI);
       console.log('Generated reference:', uniqueRefString);
       
-      // Create storage reference in images folder
-      const newUploadRef = ref(storage, `images/${uniqueRefString}`);
-      console.log('Created storage reference');
+      // Create storage reference with simplified path for testing
+      const newUploadRef = ref(storage, uniqueRefString);
+      console.log('Created storage reference:', newUploadRef.fullPath);
       
       const response = await fetch(imageURI);
       console.log('Fetched image, status:', response.status);
@@ -92,10 +74,12 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, u
       
       // Upload the image to Firebase Storage with metadata
       console.log('Starting Firebase upload...');
+      // Upload with minimal metadata for testing
       const metadata = {
-        contentType: blob.type || 'image/jpeg',
+        contentType: blob.type || 'image/jpeg'
       };
       
+      console.log('Uploading with metadata:', metadata);
       const snapshot = await uploadBytes(newUploadRef, blob, metadata);
       console.log('Upload completed successfully');
       
@@ -120,22 +104,20 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, u
       console.error('Image upload error:', error);
       console.error('Error details:', error.code, error.message);
       
-      // More specific error handling
       let errorMessage = 'Image upload failed. ';
       if (error.code === 'storage/unauthorized') {
-        errorMessage += 'Storage permissions denied.';
+        errorMessage += 'Storage permissions denied. Check Firebase Storage rules.';
       } else if (error.code === 'storage/canceled') {
         errorMessage += 'Upload was canceled.';
       } else if (error.code === 'storage/unknown') {
-        errorMessage += 'Unknown storage error. Please check your Firebase configuration.';
+        errorMessage += 'Unknown storage error. Please check your Firebase configuration and storage rules.';
       } else {
         errorMessage += error.message;
       }
       
-      // Try to send a text message instead
       Alert.alert(
         'Upload Failed', 
-        errorMessage + ' Send as text message instead?',
+        errorMessage,
         [
           {
             text: 'Send Text',
@@ -157,40 +139,35 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, u
     }
   }
 
-  /**
-   * Allow user to pick image from device library
-   * Requests permission and launches image picker
-   */
   const pickImage = async () => {
     try {
       console.log('Starting image picker...');
       
-      // Request media library permissions
       let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
       console.log('Media library permissions:', permissions);
       
       if (permissions?.granted) {
         console.log('Launching image library...');
         
-        // Handle different versions of expo-image-picker
+        // Add small delay for Android compatibility
+        await new Promise(resolve => setTimeout(resolve, 100));
+        
         let mediaTypes;
         if (ImagePicker.MediaType && ImagePicker.MediaType.Images) {
           mediaTypes = ImagePicker.MediaType.Images;
-          console.log('Using ImagePicker.MediaType.Images');
-        } else if (ImagePicker.MediaTypeOptions && ImagePicker.MediaTypeOptions.Images) {
+        } else if (ImagePicker.MediaTypeOptions) {
           mediaTypes = ImagePicker.MediaTypeOptions.Images;
-          console.log('Using ImagePicker.MediaTypeOptions.Images (legacy)');
         } else {
           mediaTypes = 'Images';
-          console.log('Using string fallback: Images');
         }
         
         let result = await ImagePicker.launchImageLibraryAsync({
-          mediaTypes: mediaTypes,
+          mediaTypes: ImagePicker.MediaTypeOptions.Images, // Force use of working legacy API
           allowsEditing: false,
-          quality: 0.5,
+          quality: 0.7, // Slightly higher quality
           base64: false,
           exif: false,
+          selectionLimit: 1, // Explicitly set selection limit for Android
         });
         
         console.log('Image picker result:', result);
@@ -208,7 +185,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, u
         console.log('Media library permissions denied');
         Alert.alert(
           "Permission Required", 
-          "Please grant photo library access to select images. Go to Settings > Apps > Expo Go > Permissions > Photos and enable access.",
+          "Please grant photo library access to select images.",
           [
             { text: "OK" }
           ]
@@ -216,20 +193,35 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, u
       }
     } catch (error) {
       console.error('Error in pickImage:', error);
-      Alert.alert(
-        "Error", 
-        `Failed to open photo library: ${error.message}. Please try again.`,
-        [
-          { text: "OK" }
-        ]
-      );
+      
+      // Handle specific Android NullPointerException
+      if (error.message.includes('NullPointerException') || error.message.includes('dispatchCancelPendingInputEvents')) {
+        Alert.alert(
+          "Android Compatibility Issue", 
+          "There's a known issue with the image picker on this Android version. Try using the camera instead, or restart the app and try again.",
+          [
+            { 
+              text: "Use Camera", 
+              onPress: () => takePhoto() 
+            },
+            { 
+              text: "Cancel", 
+              style: "cancel" 
+            }
+          ]
+        );
+      } else {
+        Alert.alert(
+          "Error", 
+          `Failed to open photo library: ${error.message}. Please try again.`,
+          [
+            { text: "OK" }
+          ]
+        );
+      }
     }
   }
 
-  /**
-   * Allow user to take photo with device camera
-   * Requests permission and launches camera
-   */
   const takePhoto = async () => {
     let permissions = await ImagePicker.requestCameraPermissionsAsync();
     if (permissions?.granted) {
@@ -242,14 +234,10 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, u
         await uploadAndSendImage(result.assets[0].uri);
       }
     } else {
-      Alert.alert("Permissions haven't been granted.");
+      Alert.alert("Camera permissions haven't been granted.");
     }
   }
 
-  /**
-   * Get user's current location and send as message
-   * Requests location permission and retrieves GPS coordinates
-   */
   const getLocation = async () => {
     let permissions = await Location.requestForegroundPermissionsAsync();
     if (permissions?.granted) {
@@ -272,7 +260,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, u
         Alert.alert("Error occurred while fetching location");
       }
     } else {
-      Alert.alert("Permissions haven't been granted.");
+      Alert.alert("Location permissions haven't been granted.");
     }
   }
 
