@@ -70,18 +70,27 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, u
       const uniqueRefString = generateReference(imageURI);
       console.log('Generated reference:', uniqueRefString);
       
-      // Try without subfolder first
-      const newUploadRef = ref(storage, uniqueRefString);
+      // Create storage reference in images folder
+      const newUploadRef = ref(storage, `images/${uniqueRefString}`);
       console.log('Created storage reference');
       
       const response = await fetch(imageURI);
       console.log('Fetched image, status:', response.status);
-      const blob = await response.blob();
-      console.log('Created blob, size:', blob.size);
       
-      // Upload the image to Firebase Storage
+      if (!response.ok) {
+        throw new Error(`Failed to fetch image: ${response.status}`);
+      }
+      
+      const blob = await response.blob();
+      console.log('Created blob, size:', blob.size, 'type:', blob.type);
+      
+      // Upload the image to Firebase Storage with metadata
       console.log('Starting Firebase upload...');
-      const snapshot = await uploadBytes(newUploadRef, blob);
+      const metadata = {
+        contentType: blob.type || 'image/jpeg',
+      };
+      
+      const snapshot = await uploadBytes(newUploadRef, blob, metadata);
       console.log('Upload completed successfully');
       
       // Get the download URL
@@ -105,10 +114,22 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, u
       console.error('Image upload error:', error);
       console.error('Error details:', error.code, error.message);
       
+      // More specific error handling
+      let errorMessage = 'Image upload failed. ';
+      if (error.code === 'storage/unauthorized') {
+        errorMessage += 'Storage permissions denied.';
+      } else if (error.code === 'storage/canceled') {
+        errorMessage += 'Upload was canceled.';
+      } else if (error.code === 'storage/unknown') {
+        errorMessage += 'Unknown storage error. Please check your Firebase configuration.';
+      } else {
+        errorMessage += error.message;
+      }
+      
       // Try to send a text message instead
       Alert.alert(
         'Upload Failed', 
-        'Image upload failed. Send as text message instead?',
+        errorMessage + ' Send as text message instead?',
         [
           {
             text: 'Send Text',
@@ -138,9 +159,8 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, u
     let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (permissions?.granted) {
       let result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
-        allowsEditing: true,
-        aspect: [4, 3],
+        mediaTypes: ImagePicker.MediaType.Images,
+        allowsEditing: false,
         quality: 0.5,
       });
       
@@ -160,8 +180,7 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, userID, u
     let permissions = await ImagePicker.requestCameraPermissionsAsync();
     if (permissions?.granted) {
       let result = await ImagePicker.launchCameraAsync({
-        allowsEditing: true,
-        aspect: [4, 3],
+        allowsEditing: false,
         quality: 0.5,
       });
       
