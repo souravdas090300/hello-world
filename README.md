@@ -52,7 +52,7 @@ A comprehensive React Native chat application built with Expo, featuring real-ti
 ### Communication APIs
 - **expo-image-picker 16.1.4** - Camera and photo library access
 - **expo-location 18.1.6** - GPS location services
-- **expo-audio** - Audio recording and playback capabilities (replaces deprecated expo-av)
+- **expo-av** - Audio recording and playback capabilities (deprecated in SDK 54+ but stable in SDK 53)
 - **react-native-maps 1.20.1** - Map display for locations
 
 ### Storage & Offline
