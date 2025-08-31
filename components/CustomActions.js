@@ -1,6 +1,6 @@
 // Import necessary dependencies for communication features
 import { useActionSheet } from '@expo/react-native-action-sheet';
-import { Audio } from 'expo-av';
+import { AudioRecorder, AudioPlayer } from 'expo-audio';
 import * as ImagePicker from 'expo-image-picker';
 import * as Location from 'expo-location';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
@@ -244,28 +244,46 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, auth, use
    */
   const startRecording = async () => {
     try {
-      let permissions = await Audio.requestPermissionsAsync();
-      if (permissions?.granted) {
-        // iOS specific config to allow recording on iPhone devices
-        await Audio.setAudioModeAsync({
-          allowsRecordingIOS: true,
-          playsInSilentModeIOS: true
+      const { granted } = await AudioRecorder.requestPermissionsAsync();
+      if (granted) {
+        // Configure audio session for recording
+        await AudioRecorder.prepareAsync({
+          android: {
+            extension: '.m4a',
+            outputFormat: 'mpeg4',
+            audioEncoder: 'aac',
+            sampleRate: 44100,
+            numberOfChannels: 2,
+            bitRate: 128000,
+          },
+          ios: {
+            extension: '.m4a',
+            outputFormat: 'mpeg4aac',
+            audioQuality: 'max',
+            sampleRate: 44100,
+            numberOfChannels: 2,
+            bitRate: 128000,
+            linearPCMBitDepth: 16,
+            linearPCMIsBigEndian: false,
+            linearPCMIsFloat: false,
+          },
         });
         
-        Audio.Recording.createAsync(Audio.RecordingOptionsPresets.HIGH_QUALITY).then(results => {
-          return results.recording;
-        }).then(recording => {
-          recordingObject = recording;
-          Alert.alert('You are recording...', undefined, [
-            { text: 'Cancel', onPress: () => { stopRecording() } },
-            { text: 'Stop and Send', onPress: () => { sendRecordedSound() } },
-          ],
-          { cancelable: false }
-          );
-        })
+        const recording = await AudioRecorder.startAsync();
+        recordingObject = recording;
+        
+        Alert.alert('You are recording...', undefined, [
+          { text: 'Cancel', onPress: () => { stopRecording() } },
+          { text: 'Stop and Send', onPress: () => { sendRecordedSound() } },
+        ],
+        { cancelable: false }
+        );
+      } else {
+        Alert.alert('Permission Required', 'Please grant microphone access to record audio.');
       }
     } catch (err) {
-      Alert.alert('Failed to record!');
+      console.error('Recording error:', err);
+      Alert.alert('Failed to record!', err.message);
     }
   }
 
@@ -273,24 +291,26 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, auth, use
    * Stops the current recording and unloads it from memory
    */
   const stopRecording = async () => {
-    await Audio.setAudioModeAsync({
-      allowsRecordingIOS: false,
-      playsInSilentModeIOS: false
-    });
-    await recordingObject.stopAndUnloadAsync();
+    if (recordingObject) {
+      await AudioRecorder.stopAsync();
+      recordingObject = null;
+    }
   }
 
   /**
    * Stops recording, uploads audio file to Firebase Storage, and sends the audio message
    */
   const sendRecordedSound = async () => {
-    await stopRecording()
-    const uniqueRefString = generateReference(recordingObject.getURI());
-    const newUploadRef = ref(storage, uniqueRefString);
-    const response = await fetch(recordingObject.getURI());
-    const blob = await response.blob();
-    uploadBytes(newUploadRef, blob).then(async (snapshot) => {
-      const soundURL = await getDownloadURL(snapshot.ref)
+    try {
+      const uri = await AudioRecorder.stopAsync();
+      const uniqueRefString = generateReference(uri);
+      const newUploadRef = ref(storage, uniqueRefString);
+      const response = await fetch(uri);
+      const blob = await response.blob();
+      
+      const snapshot = await uploadBytes(newUploadRef, blob);
+      const soundURL = await getDownloadURL(snapshot.ref);
+      
       onSend([{
         _id: Math.round(Math.random() * 1000000),
         text: '',
@@ -301,13 +321,18 @@ const CustomActions = ({ wrapperStyle, iconTextStyle, onSend, storage, auth, use
         },
         audio: soundURL,
       }]);
-    });
+    } catch (error) {
+      console.error('Error sending recorded sound:', error);
+      Alert.alert('Error', 'Failed to send audio message. Please try again.');
+    }
   }
 
   // Cleanup function to unload recording if component unmounts during recording
   useEffect(() => {
     return () => {
-      if (recordingObject) recordingObject.stopAndUnloadAsync();
+      if (recordingObject) {
+        AudioRecorder.stopAsync().catch(console.error);
+      }
     }
   }, []);
 

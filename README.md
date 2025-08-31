@@ -52,7 +52,7 @@ A comprehensive React Native chat application built with Expo, featuring real-ti
 ### Communication APIs
 - **expo-image-picker 16.1.4** - Camera and photo library access
 - **expo-location 18.1.6** - GPS location services
-- **expo-av** - Audio recording and playback capabilities
+- **expo-audio** - Audio recording and playback capabilities (replaces deprecated expo-av)
 - **react-native-maps 1.20.1** - Map display for locations
 
 ### Storage & Offline
@@ -315,7 +315,7 @@ This project is part of an educational assignment for the Full-Stack Immersion c
 ## 🎓 Course Information
 
 **Course**: Full-Stack Immersion  
-**Achievement**: 5 (Exercises 5.1-5.5)  
+**Achievement**: 5 (Exercises 5.1-2-3-4-5)  
 **Focus**: React Native Mobile Development with Communication Features
 
 ## 👨‍💻 Author

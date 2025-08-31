@@ -8,7 +8,7 @@
  * - Offline message caching
  */
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Audio } from 'expo-av';
+import { AudioPlayer } from 'expo-audio';
 import { addDoc, collection, onSnapshot, orderBy, query } from 'firebase/firestore';
 import { useEffect, useState } from 'react';
 import { KeyboardAvoidingView, Platform, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
@@ -114,10 +114,16 @@ const Chat = ({ route, navigation, db, storage, auth, isConnected }) => {
       <TouchableOpacity
         style={{ backgroundColor: "#FF0", borderRadius: 10, margin: 5 }}
         onPress={async () => {
-          if (soundObject) soundObject.unloadAsync();
-          const { sound } = await Audio.Sound.createAsync({ uri: props.currentMessage.audio });
-          soundObject = sound;
-          await sound.playAsync();
+          try {
+            if (soundObject) {
+              await soundObject.unloadAsync();
+            }
+            const player = new AudioPlayer({ uri: props.currentMessage.audio });
+            soundObject = player;
+            await player.playAsync();
+          } catch (error) {
+            console.error('Audio playback error:', error);
+          }
         }}>
         <Text style={{ textAlign: "center", color: 'black', padding: 5 }}>Play Sound</Text>
       </TouchableOpacity>
@@ -151,7 +157,7 @@ const Chat = ({ route, navigation, db, storage, auth, isConnected }) => {
 
     return () => {
       if (unsubMessages) unsubMessages();
-      if (soundObject) soundObject.unloadAsync();
+      if (soundObject) soundObject.unloadAsync().catch(console.error);
     }
   }, [isConnected]);
 
